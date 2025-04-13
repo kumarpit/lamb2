@@ -1,13 +1,17 @@
-amb(x, [false, true]);
-if (x) console.log("amb succeeded");
-else {
-    console.log("amb failed");
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Simple example where we want to find all pairs of numbers from the given lists that sum to 7 
+//
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+function sumToEight(arr1, arr2) {
+    amb(x, arr1);
+    amb(y, arr2);
+    if (x + y == 8) {
+        console.log([x, y]);
+    }
     fail();
 }
 
-amb(x, [false, true]);
-if (x) console.log("amb succeeded");
-else {
-    console.log("amb failed");
-    fail();
-}
+sumToEight([0, 1, 2, 3, 4], [5, 6, 7, 8, 9]);
+
