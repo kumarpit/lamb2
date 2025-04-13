@@ -31,4 +31,12 @@ amb([false, true], (x) => {
         console.log("amb failed");
         fail();
     }
+
+    amb([false, true], (x) => {
+        if (x) console.log("amb succeeded");
+        else {
+            console.log("amb failed");
+            fail();
+        }
+    })
 })

@@ -28,53 +28,69 @@ function assert(pred) {
 }
 // --- end helpers ---\n\n")
 
+;; String -> String
+;; Given a `.js` file name, transforms all occurences of `amb(...)` to valid
+;; `amb` function calls
 (define (rewrite-amb input-file)
-  (define
-    amb-regex
-    #px"amb\\s*\\(\\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\\s*,\\s*([^\\)]+)\\);?")
-
-  ;; Find the matching closing brace for a block starting at `{` position
+  ;; String -> Number
+  ;; Finds the index of the first unmatched `}` in the string. If there is no
+  ;; such index, returns the length of the string.
   (define (find-first-unmatched str)
-  (define len (string-length str))
+    (define len (string-length str))
 
-  (define (find-block/rec i stack)
-    (cond
-      [(>= i len) len]
-      [(char=? (string-ref str i) #\{)
-       (find-block/rec (add1 i) (cons #\{ stack))]
-      [(char=? (string-ref str i) #\})
-       (if (empty? stack)
-           (add1 i) ; matching } found
-           (find-block/rec (add1 i) (cdr stack)))]
-      [else
-       (find-block/rec (add1 i) stack)]))
+    (define (find-block/rec i stack)
+      (cond
+        [(>= i len) len]
+        [(char=? (string-ref str i) #\{)
+         (find-block/rec (add1 i) (cons #\{ stack))]
+        [(char=? (string-ref str i) #\})
+         (if (empty? stack)
+             (add1 i) ; matching `}` found
+             (find-block/rec (add1 i) (cdr stack)))]
+        [else
+         (find-block/rec (add1 i) stack)]))
 
-  (find-block/rec 0 '())) ; start with empty stack
+    (find-block/rec 0 '()))
 
+  ;; String -> String
+  ;; Recursively applies the `amb` transformations to the given string
+  ;; representing JS code (correctly deals with nested `amb` calls)
   (define (process str)
-    (define match (regexp-match-positions amb-regex str))
-    (if (not match) ;; there is no occurrence of amb(...)
+    (define whitespace "\\s*")
+    (define var-name-grp "([a-zA-Z_$][a-zA-Z0-9_$]*)")
+    (define iter-grp "([^\\)]+)")
+    (define
+      amb-rgx
+      (pregexp
+       (string-append "amb" whitespace "\\("
+                      whitespace var-name-grp whitespace "," whitespace iter-grp
+                      "\\);?")))
+    (define match (regexp-match-positions amb-rgx str))
+    (if (not match)
         str
-        (let* ([start (caar match)] ;; start of the match
-               [end (cdar match)]   ;; end of the match
+        (let* ([start (caar match)] ; start of the `amb(...)` expression
+               [end (cdar match)]   ; end of the `amb(...)` expression
                [match-text (substring str start end)]
-               [match-data (regexp-match amb-regex match-text)]
-               [var (list-ref match-data 1)]
-               [iter (list-ref match-data 2)]
-               [body-end (find-first-unmatched (substring str end))]
-               [body (substring str end (+ end body-end))]
+               [match-groups (regexp-match amb-rgx match-text)]
+               [var (list-ref match-groups 1)]
+               [iter (list-ref match-groups 2)]
+               ; index of the end of scope of the current `amb` expression
+               [amb-end (+ end (find-first-unmatched (substring str end)))]
+               [body (substring str end amb-end)] ; code within the current
+               ; amb scope
                [transformed-body (process body)]
-               [new-code
+               [amb-call
                 (format "amb(~a, (~a) => { ~a })"
                         iter
                         var
                         transformed-body)]
                [before (substring str 0 start)]
-               [after (substring str (+ end body-end))])
-          (process (string-append before new-code after)))))
+               [after (substring str amb-end)])
+          (process (string-append before amb-call after)))))
 
+  ; Write transformed code to "output.js"
   (begin
     (define output (process (file->string input-file)))
     (call-with-output-file "output.js"
-    (λ (out) (fprintf out "~a" (string-append amb-helpers output)))
-    #:exists 'replace)))
+      (λ (out) (fprintf out "~a" (string-append amb-helpers output)))
+      #:exists 'replace)))
