@@ -2,33 +2,33 @@
 const AmbError = Symbol('AmbError');
 
 function amb(iterable, closure) {
-  let it = iterable[Symbol.iterator]();
-  for (const n of it) {
-    try {
-      return closure(n);
-    } catch (e) {
-      if (e == AmbError) {
-        continue;
-      }
+    for (const n of iterable) {
+        try {
+            return closure(n);
+        } catch (e) {
+            if (e == AmbError) {
+                continue;
+            }
+        }
     }
-  }
-  throw AmbError;
+    throw AmbError;
 }
 
 function fail() {
-  throw AmbError;
+    throw AmbError;
 }
 
 function assert(pred) {
-  if (!(pred())) {
-    fail();
-  }
+    if (!(pred())) {
+        fail();
+    }
 }
 // --- end helpers ---
 
-amb("hello", (x) => {
-
-    console.log(x);
-    fail();
-
+amb([false, true], (x) => {
+    if (x) console.log("amb succeeded");
+    else {
+        console.log("amb failed");
+        fail();
+    }
 })
