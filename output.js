@@ -1,4 +1,9 @@
-// --- amb helpers ---
+///////////////////////////////////////////////////////////////////////////
+//
+// A simple implementation of the `ambiguous` operator for Javascript
+//
+//////////////////////////////////////////////////////////////////////////////
+
 const AmbError = Symbol('AmbError');
 
 function amb(iterable, closure) {
@@ -23,7 +28,12 @@ function assert(pred) {
         fail();
     }
 }
-// --- end helpers ---
+/////////////////////////////////////////////////////////////////////////////
+//
+// End of implementation
+//
+/////////////////////////////////////////////////////////////////////////////
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -32,8 +42,9 @@ function assert(pred) {
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 function sumToEight(arr1, arr2) {
-    amb(arr1, (x) => {
-        amb(arr2, (y) => {
+    return amb(arr1, (x) => {
+        return amb(arr2, (y) => {
+
             if (x + y == 8) {
                 console.log([x, y]);
             }
@@ -42,7 +53,7 @@ function sumToEight(arr1, arr2) {
     })
 }
 
-sumToEight([0, 1, 2, 3, 4], [5, 6, 7, 8, 9]);
+console.log(sumToEight([0, 1, 2, 3, 4], [5, 6, 7, 8, 9]));
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,8 +63,8 @@ sumToEight([0, 1, 2, 3, 4], [5, 6, 7, 8, 9]);
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-colors = ["red", "green", "blue", "yellow"];
-let adjacencyList = {
+const colors = ["red", "green", "blue", "yellow"];
+const adjacencyList = {
     "a": ["b", "c", "d", "f"],
     "b": ["a", "c", "d"],
     "c": ["a", "b", "d", "e"],
@@ -62,25 +73,70 @@ let adjacencyList = {
     "f": ["a", "d", "e"]
 }
 
-// TODO: would be nice to have a macro that takes a list of variables and exapnds to something
-// like this
-amb(colors, (a) => {
-    amb(colors, (b) => {
-        amb(colors, (c) => {
-            amb(colors, (d) => {
-                amb(colors, (e) => {
-                    amb(colors, (f) => {
+function solveMapColoring() {
+    return amb(colors, (a) => {
+        return amb(colors, (b) => {
+            return amb(colors, (c) => {
+                return amb(colors, (d) => {
+                    return amb(colors, (e) => {
+                        return amb(colors, (f) => {
 
-                        const assignment = { a, b, c, d, e, f };
-                        for (const [node, neighbors] of Object.entries(adjacencyList)) {
-                            for (const neighbor of neighbors) {
-                                assert(assignment[node] !== assignment[neighbor]);
+                            const assignment = { a, b, c, d, e, f };
+                            for (const [node, neighbors] of Object.entries(adjacencyList)) {
+                                for (const neighbor of neighbors) {
+                                    assert(assignment[node] !== assignment[neighbor]);
+                                }
                             }
-                        }
-                        console.log(assignment)
+
+                            return assignment;
+                        })
                     })
                 })
             })
         })
     })
-})
+}
+
+console.log(solveMapColoring())
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Solving the 8 Queens problem
+//
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+let choices = [...Array(8)].map((_, j) => j + 1);
+
+function solve8Queens() {
+    return amb(choices, (col0) => {
+        return amb(choices, (col1) => {
+            return amb(choices, (col2) => {
+                return amb(choices, (col3) => {
+                    return amb(choices, (col4) => {
+                        return amb(choices, (col5) => {
+                            return amb(choices, (col6) => {
+                                return amb(choices, (col7) => {
+
+                                    const positions = { col0, col1, col2, col3, col4, col5, col6, col7 };
+                                    assert(
+                                        ![...Array(N)].some((_, i) =>
+                                            [...Array(i)].some((_, j) => // only check columns < i
+                                                positions["col" + i] === positions["col" + j] || // same row?
+                                                Math.abs(i - j) === Math.abs(positions["col" + i] - positions["col" + j]) // same diagonal?
+                                            )
+                                        )
+                                    )
+
+                                    return positions;
+                                })
+                            })
+                        })
+                    })
+                })
+            })
+        })
+    })
+}
+
+console.log(solve8Queens());

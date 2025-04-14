@@ -1,7 +1,12 @@
 #lang racket
 
 (define amb-helpers
-  "// --- amb helpers ---
+  "///////////////////////////////////////////////////////////////////////////
+//
+// A simple implementation of the `ambiguous` operator for Javascript
+//
+//////////////////////////////////////////////////////////////////////////////
+
 const AmbError = Symbol('AmbError');
 
 function amb(iterable, closure) {
@@ -26,7 +31,12 @@ function assert(pred) {
     fail();
   }
 }
-// --- end helpers ---\n\n")
+/////////////////////////////////////////////////////////////////////////////
+//
+// End of implementation
+//
+/////////////////////////////////////////////////////////////////////////////
+\n\n")
 
 ;; String -> String
 ;; Given a `.js` file name, transforms all occurences of `amb(...)` to valid
@@ -52,24 +62,28 @@ function assert(pred) {
 
     (find-block/rec 0 '()))
 
-  ;; String -> String
+  ;; String Number -> String
   ;; Recursively applies the `amb` transformations to the given string
   ;; representing JS code (correctly deals with nested `amb` calls)
+  ;; The offset represents the index before which transformations have
+  ;; already been applied -- this is needed to prevent applying
+  ;; transformations twice on the same code, resulting in weird and most
+  ;; likely broken code
   (define (process str offset)
     (define whitespace "\\s*")
     (define var-name-grp "([a-zA-Z_$][a-zA-Z0-9_]*)")
-    (define iter-grp "([^\\)]+)")
+    (define iter-grp "([^\\;]+)")
     (define
       amb-rgx
       (pregexp
-       (string-append "amb" whitespace "\\("
-                      whitespace var-name-grp whitespace "," whitespace iter-grp
-                      "\\);?")))
+       (string-append "amb" whitespace
+                      var-name-grp whitespace "="
+                      whitespace iter-grp ";?")))
     (define match (regexp-match-positions amb-rgx (substring str offset)))
     (if (not match)
         str
-        (let* ([start (+ offset (caar match))] ; start of the `amb(...)` expression
-               [end (+ offset (cdar match))]   ; end of the `amb(...)` expression
+        (let* ([start (+ offset (caar match))] ; start index of `amb(...)`
+               [end (+ offset (cdar match))]   ; end index of `amb(...)`
                [match-text (substring str start end)]
                [match-groups (regexp-match amb-rgx match-text)]
                [var (list-ref match-groups 1)]
@@ -80,7 +94,7 @@ function assert(pred) {
                [transformed-body (process body 0)]
                ; amb scope
                [amb-call
-                (format "amb(~a, (~a) => { ~a })"
+                (format "return amb(~a, (~a) => { ~a })"
                         iter
                         var
                         transformed-body)]

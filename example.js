@@ -5,15 +5,16 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 function sumToEight(arr1, arr2) {
-    amb(x, arr1);
-    amb(y, arr2);
+    amb x = arr1;
+    amb y = arr2;
+
     if (x + y == 8) {
         console.log([x, y]);
     }
     // fail();
 }
 
-sumToEight([0, 1, 2, 3, 4], [5, 6, 7, 8, 9]);
+console.log(sumToEight([0, 1, 2, 3, 4], [5, 6, 7, 8, 9]));
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -23,8 +24,8 @@ sumToEight([0, 1, 2, 3, 4], [5, 6, 7, 8, 9]);
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-colors = ["red", "green", "blue", "yellow"];
-let adjacencyList = {
+const colors = ["red", "green", "blue", "yellow"];
+const adjacencyList = {
     "a": ["b", "c", "d", "f"],
     "b": ["a", "c", "d"],
     "c": ["a", "b", "d", "e"],
@@ -33,22 +34,25 @@ let adjacencyList = {
     "f": ["a", "d", "e"]
 }
 
-// TODO: would be nice to have a macro that takes a list of variables and exapnds to something
-// like this
-amb(a, colors);
-amb(b, colors);
-amb(c, colors);
-amb(d, colors);
-amb(e, colors);
-amb(f, colors);
+function solveMapColoring() {
+    amb a = colors;
+    amb b = colors;
+    amb c = colors;
+    amb d = colors;
+    amb e = colors;
+    amb f = colors;
 
-const assignment = { a, b, c, d, e, f };
-for (const [node, neighbors] of Object.entries(adjacencyList)) {
-    for (const neighbor of neighbors) {
-        assert(assignment[node] !== assignment[neighbor]);
+    const assignment = { a, b, c, d, e, f };
+    for (const [node, neighbors] of Object.entries(adjacencyList)) {
+        for (const neighbor of neighbors) {
+            assert(assignment[node] !== assignment[neighbor]);
+        }
     }
+
+    return assignment;
 }
-console.log(assignment)
+
+console.log(solveMapColoring())
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -57,5 +61,29 @@ console.log(assignment)
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
+let choices = [...Array(8)].map((_, j) => j + 1);
 
-// TODO:
+function solve8Queens() {
+    amb col0 = choices;
+    amb col1 = choices;
+    amb col2 = choices;
+    amb col3 = choices;
+    amb col4 = choices;
+    amb col5 = choices;
+    amb col6 = choices;
+    amb col7 = choices;
+
+    const positions = { col0, col1, col2, col3, col4, col5, col6, col7 };
+    assert(
+        ![...Array(N)].some((_, i) =>
+            [...Array(i)].some((_, j) => // only check columns < i
+                positions["col" + i] === positions["col" + j] || // same row?
+                Math.abs(i - j) === Math.abs(positions["col" + i] - positions["col" + j]) // same diagonal?
+            )
+        )
+    )
+
+    return positions;
+}
+
+console.log(solve8Queens());
