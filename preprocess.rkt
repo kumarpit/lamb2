@@ -22,7 +22,7 @@ function fail() {
 }
 
 function assert(pred) {
-  if (!(pred())) {
+  if (!pred) {
     fail();
   }
 }
