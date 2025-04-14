@@ -44,11 +44,9 @@ function assert(pred) {
 function sumToEight(arr1, arr2) {
     return amb(arr1, (x) => {
         return amb(arr2, (y) => {
+            assert(x + y == 8);
 
-            if (x + y == 8) {
-                console.log([x, y]);
-            }
-            // fail();
+            return [x, y];
         })
     })
 }

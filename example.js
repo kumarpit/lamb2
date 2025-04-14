@@ -7,11 +7,9 @@
 function sumToEight(arr1, arr2) {
     amb x = arr1;
     amb y = arr2;
+    assert(x + y == 8);
 
-    if (x + y == 8) {
-        console.log([x, y]);
-    }
-    // fail();
+    return [x, y];
 }
 
 console.log(sumToEight([0, 1, 2, 3, 4], [5, 6, 7, 8, 9]));

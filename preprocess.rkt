@@ -62,14 +62,10 @@ function assert(pred) {
 
     (find-block/rec 0 '()))
 
-  ;; String Number -> String
+  ;; String -> String
   ;; Recursively applies the `amb` transformations to the given string
   ;; representing JS code (correctly deals with nested `amb` calls)
-  ;; The offset represents the index before which transformations have
-  ;; already been applied -- this is needed to prevent applying
-  ;; transformations twice on the same code, resulting in weird and most
-  ;; likely broken code
-  (define (process str offset)
+  (define (process str)
     (define whitespace "\\s*")
     (define var-name-grp "([a-zA-Z_$][a-zA-Z0-9_]*)")
     (define iter-grp "([^\\;]+)")
@@ -79,11 +75,11 @@ function assert(pred) {
        (string-append "amb" whitespace
                       var-name-grp whitespace "="
                       whitespace iter-grp ";?")))
-    (define match (regexp-match-positions amb-rgx (substring str offset)))
+    (define match (regexp-match-positions amb-rgx str))
     (if (not match)
         str
-        (let* ([start (+ offset (caar match))] ; start index of `amb(...)`
-               [end (+ offset (cdar match))]   ; end index of `amb(...)`
+        (let* ([start (caar match)] ; start index of `amb ... = ...`
+               [end (cdar match)]   ; end index of `amb ... = ...`
                [match-text (substring str start end)]
                [match-groups (regexp-match amb-rgx match-text)]
                [var (list-ref match-groups 1)]
@@ -91,7 +87,7 @@ function assert(pred) {
                ; index of the end of scope of the current `amb` expression
                [amb-end (+ end (find-first-unmatched (substring str end)))]
                [body (substring str end amb-end)] ; code within the current
-               [transformed-body (process body 0)]
+               [transformed-body (process body)]
                ; amb scope
                [amb-call
                 (format "return amb(~a, (~a) => { ~a })"
@@ -100,11 +96,11 @@ function assert(pred) {
                         transformed-body)]
                [before (substring str 0 start)]
                [after (substring str amb-end)])
-          (process (string-append before amb-call after) amb-end))))
+          (process (string-append before amb-call after)))))
 
   ; Write transformed code to "output.js"
   (begin
-    (define output (process (file->string input-file) 0))
+    (define output (process (file->string input-file)))
     (call-with-output-file "output.js"
       (λ (out) (fprintf out "~a" (string-append amb-helpers output)))
       #:exists 'replace)))
