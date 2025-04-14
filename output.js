@@ -28,6 +28,7 @@ function assert(pred) {
         fail();
     }
 }
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // End of implementation
@@ -104,7 +105,8 @@ console.log(solveMapColoring())
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-let choices = [...Array(8)].map((_, j) => j + 1);
+const N = 8;
+let choices = [...Array(N)].map((_, j) => j);
 
 function solve8Queens() {
     return amb(choices, (col0) => {
